@@ -1,0 +1,26 @@
+{
+  "name": "neurasites-cursor",
+  "version": "1.0.0",
+  "description": "Audio Transcription & Voice Editor App",
+  "private": true,
+  "workspaces": [
+    "mobile",
+    "web",
+    "shared"
+  ],
+  "scripts": {
+    "install:all": "npm install && npm run install:mobile && npm run install:web && npm run install:shared",
+    "install:mobile": "cd mobile && npm install",
+    "install:web": "cd web && npm install", 
+    "install:shared": "cd shared && npm install",
+    "dev:mobile": "cd mobile && npm start",
+    "dev:web": "cd web && npm run dev",
+    "build:mobile": "cd mobile && npm run build",
+    "build:web": "cd web && npm run build",
+    "deploy:functions": "firebase deploy --only functions",
+    "deploy:web": "cd web && npm run build && firebase deploy --only hosting"
+  },
+  "devDependencies": {
+    "firebase-tools": "^13.0.0"
+  }
+}
