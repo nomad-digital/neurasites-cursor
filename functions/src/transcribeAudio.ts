@@ -46,7 +46,7 @@ export const transcribeAudio = async (data: any, context: functions.https.Callab
       word: word.word,
       start: word.start,
       end: word.end,
-      confidence: word.probability
+      confidence: (word as any).probability || 1.0
     })) || [];
 
     const fullTranscription = transcriptionWords.map(w => w.word).join(' ');
