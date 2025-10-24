@@ -1,10 +1,9 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import {
   Box,
   Typography,
   Card,
   CardContent,
-  Button,
   LinearProgress,
   Alert,
   List,
@@ -19,7 +18,7 @@ import { ref, uploadBytesResumable } from 'firebase/storage';
 import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { httpsCallable } from 'firebase/functions';
 import { auth, storage, db, functions } from '../utils/firebase';
-import { validateAudioFile, generateUniqueFilename } from '../utils/helpers';
+// import { validateAudioFile, generateUniqueFilename } from '../utils/helpers';
 
 export default function UploadScreen() {
   const [uploading, setUploading] = useState(false);
@@ -50,10 +49,9 @@ export default function UploadScreen() {
       return;
     }
 
-    // Validate file
-    const fileValidation = validateAudioFile(file);
-    if (!fileValidation.isValid) {
-      setError(fileValidation.error || 'Invalid file');
+    // Validate file (simplified for now)
+    if (!file.type.startsWith('audio/')) {
+      setError('Please select an audio file');
       return;
     }
 
@@ -63,7 +61,7 @@ export default function UploadScreen() {
 
     try {
       // Generate unique filename
-      const fileName = generateUniqueFilename(file.name);
+      const fileName = `${Date.now()}_${file.name}`;
       const storagePath = `users/${user.uid}/original/${fileName}`;
 
       // Upload to Firebase Storage
@@ -146,7 +144,7 @@ export default function UploadScreen() {
             
             {uploading ? (
               <Box>
-                <CircularProgress size={60} sx={{ mb: 2 }} />
+                <Box sx={{ mb: 2 }}>Uploading...</Box>
                 <Typography variant="h6" gutterBottom>
                   Uploading... {Math.round(uploadProgress)}%
                 </Typography>

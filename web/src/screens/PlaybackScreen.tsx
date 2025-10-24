@@ -1,9 +1,8 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
   Box,
   Typography,
   Button,
-  Alert,
   CircularProgress,
   Card,
   CardContent,
@@ -18,8 +17,8 @@ import { PlayArrow, Pause, Share, Delete } from '@mui/icons-material';
 import { useParams, useNavigate } from 'react-router-dom';
 import { doc, onSnapshot, deleteDoc } from 'firebase/firestore';
 import { getDownloadURL } from 'firebase/storage';
-import { db, storage } from '../utils/firebase';
-import { AudioProject } from '../types';
+import { db, getStorageRef } from '../utils/firebase';
+import type { AudioProject } from '../types';
 
 export default function PlaybackScreen() {
   const { projectId } = useParams<{ projectId: string }>();
@@ -53,7 +52,7 @@ export default function PlaybackScreen() {
           // Load audio files
           if (projectData.originalAudioUrl) {
             try {
-              const url = await getDownloadURL(storage.ref(storage, projectData.originalAudioUrl));
+              const url = await getDownloadURL(getStorageRef(projectData.originalAudioUrl));
               setOriginalAudioUrl(url);
             } catch (error) {
               console.error('Error loading original audio:', error);
@@ -62,7 +61,7 @@ export default function PlaybackScreen() {
 
           if (projectData.modifiedAudioUrl) {
             try {
-              const url = await getDownloadURL(storage.ref(storage, projectData.modifiedAudioUrl));
+              const url = await getDownloadURL(getStorageRef(projectData.modifiedAudioUrl));
               setModifiedAudioUrl(url);
             } catch (error) {
               console.error('Error loading modified audio:', error);
@@ -79,7 +78,6 @@ export default function PlaybackScreen() {
 
   useEffect(() => {
     const originalAudio = originalAudioRef.current;
-    const modifiedAudio = modifiedAudioRef.current;
 
     if (originalAudio) {
       const handleTimeUpdate = () => setOriginalCurrentTime(originalAudio.currentTime);
@@ -105,9 +103,10 @@ export default function PlaybackScreen() {
   }, [originalAudioUrl]);
 
   useEffect(() => {
-    const modifiedAudio = modifiedAudioRef.current;
+    // const modifiedAudio = modifiedAudioRef.current;
 
-    if (modifiedAudio) {
+    if (modifiedAudioRef.current) {
+      const modifiedAudio = modifiedAudioRef.current;
       const handleTimeUpdate = () => setModifiedCurrentTime(modifiedAudio.currentTime);
       const handleDurationChange = () => setModifiedDuration(modifiedAudio.duration);
       const handlePlay = () => setIsPlayingModified(true);
@@ -158,14 +157,14 @@ export default function PlaybackScreen() {
     }
   };
 
-  const handleSeekOriginal = (event: Event, newValue: number | number[]) => {
+  const handleSeekOriginal = (_event: Event, newValue: number | number[]) => {
     if (!originalAudioRef.current) return;
     const time = Array.isArray(newValue) ? newValue[0] : newValue;
     originalAudioRef.current.currentTime = time;
     setOriginalCurrentTime(time);
   };
 
-  const handleSeekModified = (event: Event, newValue: number | number[]) => {
+  const handleSeekModified = (_event: Event, newValue: number | number[]) => {
     if (!modifiedAudioRef.current) return;
     const time = Array.isArray(newValue) ? newValue[0] : newValue;
     modifiedAudioRef.current.currentTime = time;

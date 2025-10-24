@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
   Box,
   Typography,
@@ -11,19 +11,19 @@ import {
   Slider,
   IconButton,
 } from '@mui/material';
-import { PlayArrow, Pause, SkipPrevious, SkipNext } from '@mui/icons-material';
+import { PlayArrow, Pause } from '@mui/icons-material';
 import { useParams, useNavigate } from 'react-router-dom';
 import { doc, onSnapshot, updateDoc } from 'firebase/firestore';
 import { getDownloadURL } from 'firebase/storage';
 import { httpsCallable } from 'firebase/functions';
-import { db, storage, functions } from '../utils/firebase';
-import { AudioProject } from '../types';
+import { db, getStorageRef, functions } from '../utils/firebase';
+import type { AudioProject } from '../types';
 
 export default function EditorScreen() {
   const { projectId } = useParams<{ projectId: string }>();
   const navigate = useNavigate();
   const audioRef = useRef<HTMLAudioElement>(null);
-  const wavesurferRef = useRef<any>(null);
+  // const wavesurferRef = useRef<any>(null); // Will be used for waveform visualization
   
   const [project, setProject] = useState<AudioProject | null>(null);
   const [editedTranscription, setEditedTranscription] = useState('');
@@ -50,7 +50,7 @@ export default function EditorScreen() {
           // Load audio file
           if (projectData.originalAudioUrl) {
             try {
-              const url = await getDownloadURL(storage.ref(storage, projectData.originalAudioUrl));
+              const url = await getDownloadURL(getStorageRef(projectData.originalAudioUrl));
               setAudioUrl(url);
             } catch (error) {
               console.error('Error loading audio:', error);
@@ -102,7 +102,7 @@ export default function EditorScreen() {
     }
   };
 
-  const handleSeek = (event: Event, newValue: number | number[]) => {
+  const handleSeek = (_event: Event, newValue: number | number[]) => {
     if (!audioRef.current) return;
     const time = Array.isArray(newValue) ? newValue[0] : newValue;
     audioRef.current.currentTime = time;

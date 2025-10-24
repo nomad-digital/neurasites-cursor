@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Box,
   Typography,
@@ -27,7 +27,7 @@ import {
   deleteDoc 
 } from 'firebase/firestore';
 import { auth, db } from '../utils/firebase';
-import { AudioProject } from '../types';
+import type { AudioProject } from '../types';
 
 export default function HomeScreen() {
   const [projects, setProjects] = useState<AudioProject[]>([]);
@@ -155,7 +155,6 @@ export default function HomeScreen() {
                   <Alert 
                     severity={getStatusColor(project.status)} 
                     sx={{ mb: 2 }}
-                    size="small"
                   >
                     {getStatusText(project.status)}
                   </Alert>
