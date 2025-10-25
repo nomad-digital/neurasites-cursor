@@ -1,31 +1,29 @@
-# Audio Transcription & Voice Editor App
+# DJ Soundboard App
 
-A cross-platform application that allows users to upload audio files, transcribe them using AI, edit the transcription, and generate modified audio with voice cloning technology.
+A cross-platform application that allows users to upload audio clips, trim them, and play them instantly like a professional DJ soundboard. Perfect for radio DJs, podcasters, streamers, and content creators.
 
 ## Features
 
-- **Audio Upload**: Support for MP3, WAV, M4A, and AAC files (up to 50MB)
-- **AI Transcription**: Automatic transcription using OpenAI Whisper API
-- **Text Editing**: Edit transcriptions with real-time preview
-- **Voice Cloning**: Generate modified audio using ElevenLabs voice cloning
+- **Audio Upload**: Support for MP3, WAV, M4A, AAC, and OGG files (up to 50MB)
+- **Audio Trimming**: Precise trim controls to select exactly the portion you want to play
+- **Instant Playback**: Click any button to play your audio clips instantly
+- **Visual Soundboard**: Beautiful grid layout with numbered buttons for each clip
 - **Cross-Platform**: Native mobile apps (iOS/Android) and web application
 - **User Authentication**: Secure user accounts with Firebase Auth
-- **Project Management**: Save and manage audio projects
+- **Clip Management**: Save and organize your audio library
 
 ## Architecture
 
 - **Mobile Apps**: React Native with Expo
 - **Web App**: React with Vite and Material-UI
-- **Backend**: Firebase (Auth, Firestore, Storage, Cloud Functions)
-- **AI Services**: OpenAI Whisper API, ElevenLabs API
+- **Backend**: Firebase (Auth, Firestore, Storage)
 
 ## Project Structure
 
 ```
-neurasites-cursor/
+dj-soundboard/
 ├── mobile/                 # React Native Expo app
 ├── web/                   # React web app
-├── functions/             # Firebase Cloud Functions
 ├── shared/                # Shared code/types
 └── firebase.json          # Firebase config
 ```
@@ -36,10 +34,8 @@ neurasites-cursor/
 
 - Node.js 18+
 - Firebase CLI
-- Expo CLI
+- Expo CLI (for mobile development)
 - Firebase project
-- OpenAI API key
-- ElevenLabs API key
 
 ### 1. Clone and Install Dependencies
 
@@ -62,26 +58,14 @@ firebase login
 firebase use --add  # Select your project
 ```
 
-### 3. Environment Variables
+### 3. Configure Firebase
 
-Copy `env.example` to `.env` and fill in your API keys:
+Copy `env.example` to `.env` and fill in your Firebase configuration values.
 
-```bash
-cp env.example .env
-```
-
-Update the following variables:
-- Firebase configuration values
-- `OPENAI_API_KEY` - Your OpenAI API key
-- `ELEVENLABS_API_KEY` - Your ElevenLabs API key
-
-### 4. Firebase Functions Setup
+### 4. Deploy Firebase Rules
 
 ```bash
-cd functions
-npm install
-npm run build
-firebase deploy --only functions
+firebase deploy --only firestore:rules,storage:rules
 ```
 
 ### 5. Run Applications
@@ -98,29 +82,28 @@ cd mobile
 npm start
 ```
 
-## API Costs
-
-- **Whisper API**: ~$0.006 per minute of audio
-- **ElevenLabs**: ~$0.20-0.30 per minute of generated audio
-- **Firebase**: Storage ~$0.026/GB, Functions ~$0.40/million invocations
-
 ## Usage
 
 1. **Sign Up/Login**: Create an account or sign in
-2. **Upload Audio**: Select an audio file from your device
-3. **Wait for Transcription**: AI will transcribe your audio automatically
-4. **Edit Transcription**: Modify the transcribed text as needed
-5. **Generate Modified Audio**: AI will create new audio with your edits
-6. **Play and Download**: Listen to the modified audio and save your projects
+2. **Upload Audio**: Click "Add Clip" and select an audio file from your device
+3. **Trim Your Clip**: Use the editor to select exactly the portion you want to play
+4. **Save to Soundboard**: Your clip appears as a button on your soundboard
+5. **Play Instantly**: Click any button to play that clip instantly
+6. **Manage Your Library**: Edit, rename, or delete clips as needed
+
+## Firebase Costs
+
+- **Firebase Storage**: ~$0.026/GB for audio storage
+- **Firebase Firestore**: Free tier covers most personal use cases
+- All processing happens in the browser - no backend costs!
 
 ## Development
 
 ### Adding New Features
 
 1. Update types in `shared/types.ts`
-2. Implement backend logic in `functions/src/`
-3. Add UI components in `mobile/screens/` or `web/src/screens/`
-4. Test across all platforms
+2. Add UI components in `mobile/screens/` or `web/src/screens/`
+3. Test across all platforms
 
 ### Deployment
 
@@ -137,25 +120,35 @@ cd mobile
 eas build --platform all
 ```
 
+## Use Cases
+
+- **Radio DJs**: Quick access to jingles, sound effects, and music clips
+- **Podcasters**: Play intro music, sponsor messages, and transitions
+- **Streamers**: Trigger sound effects and reactions during live streams
+- **Content Creators**: Organize and play audio clips for video production
+- **Event Hosts**: Play announcements, music, and sound effects at events
+
 ## Security
 
 - Firebase Security Rules protect user data
-- API keys are stored securely in environment variables
-- File uploads are validated and size-limited
+- File uploads are validated and size-limited (50MB max)
 - User authentication is required for all operations
+- Each user can only access their own audio clips
 
 ## Troubleshooting
 
 ### Common Issues
 
-1. **Firebase not initialized**: Check your Firebase configuration
-2. **API key errors**: Verify your OpenAI and ElevenLabs API keys
-3. **Upload failures**: Check file size and format requirements
-4. **Transcription errors**: Ensure audio quality is good and language is supported
+1. **Firebase not initialized**: Check your Firebase configuration in the `.env` file
+2. **Upload failures**: Ensure your audio file is under 50MB and in a supported format
+3. **Clips not playing**: Check that your browser allows audio playback
+4. **Trimming not working**: Make sure the trim end is after the trim start
 
-### Support
+### Browser Compatibility
 
-For issues and questions, please check the Firebase documentation and API documentation for the services used.
+- Chrome, Firefox, Safari, Edge (latest versions)
+- Audio playback requires browser support for HTML5 audio
+- File uploads work best with modern browsers
 
 ## License
 
