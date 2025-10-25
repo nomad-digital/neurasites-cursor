@@ -10,13 +10,15 @@ import {
   CardContent,
   Slider,
   IconButton,
+  Stack,
+  TextField,
 } from '@mui/material';
 import { PlayArrow, Pause } from '@mui/icons-material';
 import { useParams, useNavigate } from 'react-router-dom';
-import { doc, onSnapshot, updateDoc } from 'firebase/firestore';
-import { getDownloadURL } from 'firebase/storage';
+import { collection, doc, onSnapshot, updateDoc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { getDownloadURL, uploadBytesResumable } from 'firebase/storage';
 import { httpsCallable } from 'firebase/functions';
-import { db, getStorageRef, functions } from '../utils/firebase';
+import { auth, db, getStorageRef, functions } from '../utils/firebase';
 import type { AudioProject } from '../types';
 
 export default function EditorScreen() {
@@ -34,6 +36,9 @@ export default function EditorScreen() {
   const [generating, setGenerating] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [trimRange, setTrimRange] = useState<[number, number]>([0, 0]);
+  const [savingClip, setSavingClip] = useState(false);
+  const [clipTitle, setClipTitle] = useState('');
 
   useEffect(() => {
     if (!projectId) return;
@@ -92,6 +97,18 @@ export default function EditorScreen() {
     }
   }, [audioUrl]);
 
+  useEffect(() => {
+    if (duration > 0) {
+      setTrimRange([0, duration]);
+    }
+  }, [duration]);
+
+  useEffect(() => {
+    if (project?.title) {
+      setClipTitle(`${project.title}`);
+    }
+  }, [project?.title]);
+
   const togglePlayPause = () => {
     if (!audioRef.current) return;
 
@@ -113,6 +130,142 @@ export default function EditorScreen() {
     const mins = Math.floor(seconds / 60);
     const secs = Math.floor(seconds % 60);
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  const handleTrimChange = (_event: Event, newValue: number | number[]) => {
+    if (!Array.isArray(newValue)) return;
+    const [start, end] = newValue as [number, number];
+    if (start >= 0 && end <= (duration || 0) && start < end) {
+      setTrimRange([start, end]);
+    }
+  };
+
+  const audioBufferToWav = (buffer: AudioBuffer): ArrayBuffer => {
+    const numChannels = buffer.numberOfChannels;
+    const sampleRate = buffer.sampleRate;
+    const numFrames = buffer.length;
+    const bytesPerSample = 2; // 16-bit PCM
+    const blockAlign = numChannels * bytesPerSample;
+    const byteRate = sampleRate * blockAlign;
+    const dataSize = numFrames * blockAlign;
+    const bufferSize = 44 + dataSize;
+
+    const arrayBuffer = new ArrayBuffer(bufferSize);
+    const view = new DataView(arrayBuffer);
+
+    const writeString = (offset: number, str: string) => {
+      for (let i = 0; i < str.length; i++) {
+        view.setUint8(offset + i, str.charCodeAt(i));
+      }
+    };
+
+    // RIFF header
+    writeString(0, 'RIFF');
+    view.setUint32(4, 36 + dataSize, true);
+    writeString(8, 'WAVE');
+
+    // fmt chunk
+    writeString(12, 'fmt ');
+    view.setUint32(16, 16, true); // PCM chunk size
+    view.setUint16(20, 1, true); // Audio format 1 = PCM
+    view.setUint16(22, numChannels, true);
+    view.setUint32(24, sampleRate, true);
+    view.setUint32(28, byteRate, true);
+    view.setUint16(32, blockAlign, true);
+    view.setUint16(34, 16, true);
+
+    // data chunk
+    writeString(36, 'data');
+    view.setUint32(40, dataSize, true);
+
+    // Interleave and convert to 16-bit
+    let offset = 44;
+    const interleaved = new Float32Array(numFrames * numChannels);
+    for (let channel = 0; channel < numChannels; channel++) {
+      const channelData = buffer.getChannelData(channel);
+      for (let i = 0; i < numFrames; i++) {
+        interleaved[i * numChannels + channel] = channelData[i];
+      }
+    }
+
+    for (let i = 0; i < interleaved.length; i++) {
+      let sample = Math.max(-1, Math.min(1, interleaved[i]));
+      sample = sample < 0 ? sample * 0x8000 : sample * 0x7fff;
+      view.setInt16(offset, sample as number, true);
+      offset += 2;
+    }
+
+    return arrayBuffer;
+  };
+
+  const saveAsSoundClip = async () => {
+    if (!audioUrl || !project) return;
+    const user = auth.currentUser;
+    if (!user) {
+      setError('Please sign in first');
+      return;
+    }
+
+    const [startSec, endSec] = trimRange;
+    if (!(endSec > startSec)) return;
+
+    setSavingClip(true);
+    setError('');
+
+    try {
+      const response = await fetch(audioUrl);
+      const arrayBuffer = await response.arrayBuffer();
+      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const decoded = await audioContext.decodeAudioData(arrayBuffer.slice(0));
+
+      const sampleRate = decoded.sampleRate;
+      const startSample = Math.floor(startSec * sampleRate);
+      const endSample = Math.min(Math.floor(endSec * sampleRate), decoded.length);
+      const frameCount = Math.max(0, endSample - startSample);
+      if (frameCount <= 0) throw new Error('Invalid trim range');
+
+      const numChannels = decoded.numberOfChannels;
+      const clipped = audioContext.createBuffer(numChannels, frameCount, sampleRate);
+      for (let ch = 0; ch < numChannels; ch++) {
+        const channelData = decoded.getChannelData(ch).subarray(startSample, endSample);
+        clipped.copyToChannel(channelData, ch, 0);
+      }
+
+      const wavBuffer = audioBufferToWav(clipped);
+      const wavBlob = new Blob([wavBuffer], { type: 'audio/wav' });
+
+      const clipsCol = collection(db, 'soundClips');
+      const clipRef = doc(clipsCol);
+      const clipId = clipRef.id;
+      const storagePath = `users/${user.uid}/clips/${clipId}.wav`;
+
+      // Upload WAV to storage
+      const uploadTask = uploadBytesResumable(getStorageRef(storagePath), wavBlob, { contentType: 'audio/wav' });
+      await new Promise<void>((resolve, reject) => {
+        uploadTask.on('state_changed', undefined, (err) => reject(err), () => resolve());
+      });
+
+      // Create Firestore doc
+      await setDoc(clipRef, {
+        id: clipId,
+        userId: user.uid,
+        title: clipTitle?.trim() || project.title || 'Clip',
+        storagePath,
+        duration: endSec - startSec,
+        sourceProjectId: project.id,
+        sourceStartSec: startSec,
+        sourceEndSec: endSec,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      });
+
+      navigate('/');
+    } catch (e: any) {
+      console.error(e);
+      setError(e?.message || 'Failed to save clip');
+    } finally {
+      setSavingClip(false);
+    }
   };
 
   const handleGenerateAudio = async () => {
@@ -229,6 +382,49 @@ export default function EditorScreen() {
           )}
         </CardContent>
       </Card>
+
+      {audioUrl && (
+        <Card sx={{ mb: 3 }}>
+          <CardContent>
+            <Typography variant="h6" gutterBottom>
+              Trim Clip
+            </Typography>
+
+            <Stack direction="row" alignItems="center" spacing={2} sx={{ mb: 2 }}>
+              <Typography variant="body2" minWidth={56}>{formatTime(trimRange[0] || 0)}</Typography>
+              <Box flex={1}>
+                <Slider
+                  value={trimRange}
+                  onChange={handleTrimChange}
+                  valueLabelDisplay="auto"
+                  min={0}
+                  max={duration || 0}
+                  step={0.01}
+                  disabled={!duration}
+                />
+              </Box>
+              <Typography variant="body2" minWidth={56}>{formatTime(trimRange[1] || 0)}</Typography>
+            </Stack>
+
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+              <TextField
+                label="Clip Title"
+                value={clipTitle}
+                onChange={(e) => setClipTitle(e.target.value)}
+                fullWidth
+              />
+              <Button
+                variant="contained"
+                size="large"
+                onClick={saveAsSoundClip}
+                disabled={savingClip || !duration || trimRange[1] - trimRange[0] <= 0.1}
+              >
+                {savingClip ? <CircularProgress size={24} color="inherit" /> : 'Save as Sound Clip'}
+              </Button>
+            </Stack>
+          </CardContent>
+        </Card>
+      )}
 
       <Card sx={{ mb: 3 }}>
         <CardContent>
