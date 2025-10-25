@@ -10,6 +10,7 @@ import {
   CardContent,
   Slider,
   IconButton,
+  Divider,
 } from '@mui/material';
 import { PlayArrow, Pause } from '@mui/icons-material';
 import { useParams, useNavigate } from 'react-router-dom';
@@ -34,6 +35,10 @@ export default function EditorScreen() {
   const [generating, setGenerating] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [trimRange, setTrimRange] = useState<number[]>([0, 0]);
+  const [clipTitle, setClipTitle] = useState('');
+  const [savingClip, setSavingClip] = useState(false);
+  const [saveMessage, setSaveMessage] = useState('');
 
   useEffect(() => {
     if (!projectId) return;
@@ -71,7 +76,13 @@ export default function EditorScreen() {
       const audio = audioRef.current;
       
       const handleTimeUpdate = () => setCurrentTime(audio.currentTime);
-      const handleDurationChange = () => setDuration(audio.duration);
+      const handleDurationChange = () => {
+        setDuration(audio.duration);
+        if (trimRange[1] === 0 && audio.duration) {
+          const initialEnd = Math.min(5, Math.floor(audio.duration));
+          setTrimRange([0, initialEnd]);
+        }
+      };
       const handlePlay = () => setIsPlaying(true);
       const handlePause = () => setIsPlaying(false);
       const handleEnded = () => setIsPlaying(false);
@@ -109,10 +120,39 @@ export default function EditorScreen() {
     setCurrentTime(time);
   };
 
+  const handleTrimChange = (_event: Event, newValue: number | number[]) => {
+    if (Array.isArray(newValue)) {
+      const [start, end] = newValue;
+      setTrimRange([Math.max(0, start), Math.min(duration || end, end)]);
+    }
+  };
+
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = Math.floor(seconds % 60);
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  const handleSaveClip = async () => {
+    if (!project) return;
+    const [start, end] = trimRange;
+    if (end <= start) {
+      setError('Invalid trim range');
+      return;
+    }
+    setSavingClip(true);
+    setError('');
+    setSaveMessage('');
+    try {
+      const createClip = httpsCallable(functions, 'createTrimmedClipFunction');
+      await createClip({ projectId: project.id, startTime: start, endTime: end, title: clipTitle || project.title });
+      setSaveMessage('Clip saved to your soundboard');
+      setClipTitle('');
+    } catch (e: any) {
+      setError(e?.message || 'Failed to save clip');
+    } finally {
+      setSavingClip(false);
+    }
   };
 
   const handleGenerateAudio = async () => {
@@ -229,6 +269,48 @@ export default function EditorScreen() {
           )}
         </CardContent>
       </Card>
+
+      {audioUrl && (
+        <Card sx={{ mb: 3 }}>
+          <CardContent>
+            <Typography variant="h6" gutterBottom>
+              Trim Clip
+            </Typography>
+            {saveMessage && (
+              <Alert severity="success" sx={{ mb: 2 }}>{saveMessage}</Alert>
+            )}
+            <Box display="flex" alignItems="center" gap={2} mb={2}>
+              <Typography variant="body2" minWidth={48}>{formatTime(trimRange[0])}</Typography>
+              <Box flex={1}>
+                <Slider
+                  value={trimRange}
+                  onChange={handleTrimChange}
+                  max={duration || 0}
+                  disabled={!duration}
+                />
+              </Box>
+              <Typography variant="body2" minWidth={48}>{formatTime(trimRange[1])}</Typography>
+            </Box>
+
+            <Box display="flex" gap={2} alignItems="center">
+              <TextField
+                label="Clip title"
+                value={clipTitle}
+                onChange={(e) => setClipTitle(e.target.value)}
+                size="small"
+                sx={{ flex: 1 }}
+              />
+              <Button
+                variant="contained"
+                onClick={handleSaveClip}
+                disabled={savingClip || !duration || trimRange[1] <= trimRange[0]}
+              >
+                {savingClip ? <CircularProgress size={20} color="inherit" /> : 'Save to Soundboard'}
+              </Button>
+            </Box>
+          </CardContent>
+        </Card>
+      )}
 
       <Card sx={{ mb: 3 }}>
         <CardContent>
