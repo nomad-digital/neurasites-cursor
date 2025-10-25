@@ -1,93 +1,125 @@
-# Quick Start Guide - Audio Editor App
+# DJ Soundboard - Quick Start Guide
 
-## ✅ Steps 1-3 Complete
+Get your soundboard up and running in minutes!
 
-You've successfully completed:
-1. ✅ Cloned and installed dependencies
-2. ✅ Set up Firebase project
-3. ✅ Environment variables configured
+## 🚀 Quick Setup
 
-## 🔧 Step 4: Deploy Cloud Functions (Fixed!)
-
-The TypeScript compilation errors have been resolved. You can now proceed:
+### 1. Install Dependencies
 
 ```bash
-cd functions
-npm run build
-firebase deploy --only functions
+# Install all dependencies
+npm run install:all
+
+# Or install individually
+cd web && npm install
+cd ../shared && npm install
 ```
 
-## 🚀 Step 5: Deploy Web App
+### 2. Configure Firebase
+
+1. Create a Firebase project at [console.firebase.google.com](https://console.firebase.google.com)
+2. Enable **Email/Password** authentication
+3. Create a **Firestore database** (start in production mode or test mode)
+4. Create a **Storage bucket**
+5. Get your Firebase configuration from Project Settings
+
+### 3. Set Up Environment Variables
+
+Copy the Firebase configuration to your environment:
 
 ```bash
+# In the /workspace directory
+cp env.example .env
+```
+
+Edit `.env` and add your Firebase configuration values.
+
+### 4. Deploy Firebase Rules
+
+```bash
+firebase login
+firebase use --add  # Select your project
+firebase deploy --only firestore:rules,storage:rules
+```
+
+### 5. Run the App
+
+```bash
+# Web App
 cd web
-npm run build
-firebase deploy --only hosting
+npm run dev
 ```
 
-## 📱 Step 6: Test Mobile App (Development)
+Visit `http://localhost:5173` and start building your soundboard!
 
-```bash
-cd mobile
-npm start
-```
+## 📱 Using the App
 
-## 🔑 Important Configuration Notes
+### Upload Your First Clip
 
-### Firebase Configuration
-You'll need to update the Firebase configuration in these files with your actual project values:
+1. Click **"Add Clip"** button
+2. Drag & drop or select an audio file (MP3, WAV, M4A, AAC, OGG)
+3. Give it a name (e.g., "Intro Music", "Applause", "Drum Roll")
+4. Click **"Upload to Soundboard"**
 
-1. **Web App**: Update `web/src/utils/firebase.ts`
-2. **Mobile App**: Update `mobile/utils/firebase.ts`
+### Trim Your Clip
 
-### Environment Variables
-Make sure your `.env` file contains your actual Firebase configuration:
+1. Click the **Edit** icon on any clip
+2. Play the audio and find the exact portion you want
+3. Use the **trim slider** to select start and end points
+4. Or use **"Set to Current Time"** buttons for precision
+5. Click **"Save Clip"**
 
-```env
-VITE_FIREBASE_API_KEY=your-actual-api-key
-VITE_FIREBASE_AUTH_DOMAIN=your-actual-project.firebaseapp.com
-VITE_FIREBASE_PROJECT_ID=your-actual-project-id
-VITE_FIREBASE_STORAGE_BUCKET=your-actual-project.appspot.com
-VITE_FIREBASE_MESSAGING_SENDER_ID=your-actual-sender-id
-VITE_FIREBASE_APP_ID=your-actual-app-id
-```
+### Play Clips on Your Soundboard
 
-### API Keys Setup
-After deploying functions, set up your API keys:
+1. Return to the home screen
+2. Click any button to play that clip instantly
+3. Click again to stop playback
+4. Each clip shows its duration and trim status
 
-```bash
-firebase functions:config:set openai.api_key="your-openai-api-key"
-firebase functions:config:set elevenlabs.api_key="your-elevenlabs-api-key"
-```
+## 🎯 Pro Tips
 
-## 🎯 Current Status
+- **Keyboard Shortcuts**: Consider adding keyboard bindings for quick access (feature coming soon!)
+- **Organization**: Use clear, descriptive names for your clips
+- **Trim Tightly**: Trim clips to exactly what you need for instant response
+- **Test Audio**: Make sure your clips are normalized to similar volumes
 
-The app is now ready for testing! The core functionality includes:
+## 🎨 Customization Ideas
 
-- ✅ User authentication
-- ✅ Audio file upload
-- ✅ AI transcription (Whisper API)
-- ✅ Text editing interface
-- ✅ Project management
-- ✅ Cross-platform support (web + mobile)
+- Add custom colors to clips (edit the AudioClip type to include color)
+- Implement keyboard shortcuts for each button
+- Add categories/folders for organizing clips
+- Create clip playlists for sequences
 
-**Note**: The voice cloning feature is currently simplified for initial deployment. Full audio generation will be implemented in future updates.
+## 🔧 Troubleshooting
 
-## 🐛 Troubleshooting
+### Audio Won't Play
+- Check browser audio permissions
+- Ensure file uploaded successfully
+- Try a different audio format
 
-If you encounter any issues:
+### Upload Fails
+- File must be under 50MB
+- Use supported formats: MP3, WAV, M4A, AAC, OGG
+- Check your Firebase Storage rules are deployed
 
-1. **Firebase not initialized**: Check your Firebase configuration values
-2. **API key errors**: Verify your OpenAI and ElevenLabs API keys are set correctly
-3. **Build failures**: Make sure all dependencies are installed with `npm install`
+### Clips Not Showing
+- Verify you're signed in with the same account
+- Check Firebase Firestore rules are deployed
+- Open browser console for error messages
 
-## 📞 Next Steps
+## 📚 Next Steps
 
-1. Deploy the Cloud Functions
-2. Deploy the web app
-3. Test the mobile app in development
-4. Configure your actual Firebase project values
-5. Set up your API keys
-6. Test the complete workflow!
+- **Mobile App**: Install dependencies in `/mobile` and run with Expo
+- **Deploy Web**: Build and deploy to Firebase Hosting
+- **Add Features**: Customize the app to your needs
+- **Share**: Deploy and share with your team!
 
-The app is now fully functional and ready for production use! 🎉
+## 🆘 Need Help?
+
+- Check the main [README.md](./README.md) for detailed setup
+- Review Firebase documentation for configuration issues
+- Check browser console for error messages
+
+---
+
+Happy DJing! 🎵🎧

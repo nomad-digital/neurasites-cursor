@@ -77,14 +77,15 @@ export default function AuthScreen() {
     >
       <Card sx={{ maxWidth: 400, width: '100%' }}>
         <CardContent sx={{ p: 4 }}>
-          <Typography variant="h4" component="h1" gutterBottom textAlign="center">
-            {isLogin ? 'Welcome Back' : 'Create Account'}
+          <Typography variant="h4" component="h1" gutterBottom textAlign="center" sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
+            <span>🎵</span>
+            {isLogin ? 'Welcome Back' : 'DJ Soundboard'}
           </Typography>
           
           <Typography variant="body1" color="text.secondary" textAlign="center" sx={{ mb: 3 }}>
             {isLogin 
-              ? 'Sign in to continue editing audio' 
-              : 'Sign up to start editing audio'
+              ? 'Sign in to access your soundboard' 
+              : 'Create your professional soundboard'
             }
           </Typography>
 
