@@ -60,3 +60,18 @@ export interface ProcessingStatus {
   message: string;
   error?: string;
 }
+
+// A saved, trimmed audio clip for the user's soundboard
+export interface SoundClip {
+  id: string;
+  userId: string;
+  title: string;
+  storagePath: string; // path in Firebase Storage (e.g., users/{uid}/clips/{clipId}.wav)
+  duration: number; // clip duration in seconds
+  sourceProjectId?: string; // optional link back to original project
+  sourceStartSec?: number; // original start time used to create the clip
+  sourceEndSec?: number; // original end time used to create the clip
+  slot?: number; // optional UI slot/index for arranging buttons
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
+}

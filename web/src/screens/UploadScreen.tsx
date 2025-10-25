@@ -15,7 +15,7 @@ import { CloudUpload, CheckCircle } from '@mui/icons-material';
 import { useDropzone } from 'react-dropzone';
 import { useNavigate } from 'react-router-dom';
 import { ref, uploadBytesResumable } from 'firebase/storage';
-import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { httpsCallable } from 'firebase/functions';
 import { auth, storage, db, functions } from '../utils/firebase';
 // import { validateAudioFile, generateUniqueFilename } from '../utils/helpers';
@@ -78,7 +78,7 @@ export default function UploadScreen() {
       await uploadTask;
 
       // Create project document in Firestore
-      const projectRef = doc(db, 'audioProjects', '');
+      const projectRef = doc(collection(db, 'audioProjects'));
       const projectId = projectRef.id;
       const projectData = {
         id: projectId,
@@ -99,7 +99,7 @@ export default function UploadScreen() {
         projectId: projectId,
       });
 
-      navigate('/');
+      navigate(`/editor/${projectId}`);
     } catch (error: any) {
       setError(error.message || 'Upload failed');
     } finally {
