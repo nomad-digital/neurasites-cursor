@@ -108,13 +108,22 @@ export default function HomeScreen() {
         <Typography variant="h4" component="h1">
           Audio Editor
         </Typography>
-        <Button
-          variant="contained"
-          onClick={() => navigate('/upload')}
-          size="large"
-        >
-          New Project
-        </Button>
+        <Box display="flex" gap={2}>
+          <Button
+            variant="outlined"
+            onClick={() => navigate('/soundboard')}
+            size="large"
+          >
+            Soundboard
+          </Button>
+          <Button
+            variant="contained"
+            onClick={() => navigate('/upload')}
+            size="large"
+          >
+            New Project
+          </Button>
+        </Box>
       </Box>
 
       {projects.length === 0 ? (

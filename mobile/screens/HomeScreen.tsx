@@ -126,12 +126,20 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Audio Editor</Text>
-        <TouchableOpacity
-          style={styles.newProjectButton}
-          onPress={() => navigation.navigate('Upload')}
-        >
-          <Text style={styles.newProjectButtonText}>+ New Project</Text>
-        </TouchableOpacity>
+        <View style={styles.headerActions}>
+          <TouchableOpacity
+            style={[styles.newProjectButton, styles.secondaryButton]}
+            onPress={() => navigation.navigate('Soundboard')}
+          >
+            <Text style={styles.secondaryButtonText}>Soundboard</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.newProjectButton}
+            onPress={() => navigation.navigate('Upload')}
+          >
+            <Text style={styles.newProjectButtonText}>+ New Project</Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       {loading ? (
@@ -174,14 +182,28 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#333',
   },
+  headerActions: {
+    flexDirection: 'row',
+    gap: 8,
+  },
   newProjectButton: {
     backgroundColor: '#007AFF',
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 8,
   },
+  secondaryButton: {
+    backgroundColor: 'white',
+    borderWidth: 1,
+    borderColor: '#007AFF',
+    marginRight: 8,
+  },
   newProjectButtonText: {
     color: 'white',
+    fontWeight: '600',
+  },
+  secondaryButtonText: {
+    color: '#007AFF',
     fontWeight: '600',
   },
   loadingContainer: {

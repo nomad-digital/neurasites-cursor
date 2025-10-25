@@ -13,6 +13,7 @@ import HomeScreen from './screens/HomeScreen';
 import UploadScreen from './screens/UploadScreen';
 import EditorScreen from './screens/EditorScreen';
 import PlaybackScreen from './screens/PlaybackScreen';
+import SoundboardScreen from './screens/SoundboardScreen';
 
 const Stack = createStackNavigator();
 
@@ -59,6 +60,11 @@ export default function App() {
                 name="Home" 
                 component={HomeScreen} 
                 options={{ title: 'Audio Editor' }}
+              />
+              <Stack.Screen 
+                name="Soundboard" 
+                component={SoundboardScreen} 
+                options={{ title: 'Soundboard' }}
               />
               <Stack.Screen 
                 name="Upload" 

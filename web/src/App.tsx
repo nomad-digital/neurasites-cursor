@@ -11,6 +11,7 @@ import HomeScreen from './screens/HomeScreen';
 import UploadScreen from './screens/UploadScreen';
 import EditorScreen from './screens/EditorScreen';
 import PlaybackScreen from './screens/PlaybackScreen';
+import SoundboardScreen from './screens/SoundboardScreen';
 
 const theme = createTheme({
   palette: {
@@ -68,6 +69,7 @@ function App() {
               <Route path="/upload" element={<UploadScreen />} />
               <Route path="/editor/:projectId" element={<EditorScreen />} />
               <Route path="/playback/:projectId" element={<PlaybackScreen />} />
+              <Route path="/soundboard" element={<SoundboardScreen />} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </>
           ) : (

@@ -60,3 +60,23 @@ export interface ProcessingStatus {
   message: string;
   error?: string;
 }
+
+// A saved, trimmed audio clip that can be played on a soundboard
+export interface SoundClip {
+  id: string;
+  userId: string;
+  // Source project this clip was trimmed from
+  projectId: string;
+  title: string;
+  description?: string;
+  // Start/end in seconds within the original audio
+  startTime: number;
+  endTime: number;
+  // Firebase Storage path where the trimmed clip is stored
+  audioStoragePath: string;
+  // Optional ordering or grouping for soundboard
+  order?: number;
+  color?: string;
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
+}
