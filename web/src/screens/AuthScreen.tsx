@@ -16,6 +16,7 @@ import {
   sendPasswordResetEmail,
 } from 'firebase/auth';
 import { auth } from '../utils/firebase';
+import Logo from '../components/Logo';
 
 export default function AuthScreen() {
   const [isLogin, setIsLogin] = useState(true);
@@ -64,112 +65,105 @@ export default function AuthScreen() {
     }
   };
 
-  return (
-    <Box
-      sx={{
-        minHeight: '100vh',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        bgcolor: 'grey.50',
-        padding: 2,
-      }}
-    >
-      <Card sx={{ maxWidth: 400, width: '100%' }}>
-        <CardContent sx={{ p: 4 }}>
-          <Typography variant="h4" component="h1" gutterBottom textAlign="center">
-            {isLogin ? 'Welcome Back' : 'Create Account'}
-          </Typography>
-          
-          <Typography variant="body1" color="text.secondary" textAlign="center" sx={{ mb: 3 }}>
-            {isLogin 
-              ? 'Sign in to continue editing audio' 
-              : 'Sign up to start editing audio'
-            }
-          </Typography>
-
-          {error && (
-            <Alert severity={error.includes('sent') ? 'success' : 'error'} sx={{ mb: 2 }}>
-              {error}
-            </Alert>
-          )}
-
-          <TextField
-            fullWidth
-            label="Email"
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            margin="normal"
-            autoComplete="email"
-          />
-          
-          <TextField
-            fullWidth
-            label="Password"
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            margin="normal"
-            autoComplete="current-password"
-          />
-
-          <Button
-            fullWidth
-            variant="contained"
-            size="large"
-            onClick={handleAuth}
-            disabled={loading}
-            sx={{ mt: 2, mb: 2 }}
-          >
-            {loading ? (
-              <CircularProgress size={24} color="inherit" />
-            ) : (
-              isLogin ? 'Sign In' : 'Sign Up'
-            )}
-          </Button>
-
-          <Divider sx={{ my: 2 }}>
-            <Typography variant="body2" color="text.secondary">
-              OR
+    return (
+      <Box
+        sx={{
+          minHeight: '100vh',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          bgcolor: 'grey.50',
+          padding: 2,
+        }}
+      >
+        <Card sx={{ maxWidth: 400, width: '100%' }}>
+          <CardContent sx={{ p: 4 }}>
+            <Box display="flex" justifyContent="center" mb={3}>
+              <Logo width="220" style={{ maxWidth: '100%', height: 'auto' }} />
+            </Box>
+            <Typography variant="h4" component="h1" gutterBottom textAlign="center">
+              {isLogin ? 'Welcome Back' : 'Create Account'}
             </Typography>
-          </Divider>
 
-          <Button
-            fullWidth
-            variant="outlined"
-            size="large"
-            onClick={handleGoogleSignIn}
-            disabled={loading}
-            sx={{ mb: 2 }}
-          >
-            Continue with Google
-          </Button>
+            <Typography variant="body1" color="text.secondary" textAlign="center" sx={{ mb: 3 }}>
+              {isLogin
+                ? 'Sign in to continue editing audio'
+                : 'Sign up to start editing audio'}
+            </Typography>
 
-          <Box textAlign="center">
+            {error && (
+              <Alert severity={error.includes('sent') ? 'success' : 'error'} sx={{ mb: 2 }}>
+                {error}
+              </Alert>
+            )}
+
+            <TextField
+              fullWidth
+              label="Email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              margin="normal"
+              autoComplete="email"
+            />
+
+            <TextField
+              fullWidth
+              label="Password"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              margin="normal"
+              autoComplete="current-password"
+            />
+
             <Button
-              variant="text"
-              onClick={() => setIsLogin(!isLogin)}
-              sx={{ mb: 1 }}
+              fullWidth
+              variant="contained"
+              size="large"
+              onClick={handleAuth}
+              disabled={loading}
+              sx={{ mt: 2, mb: 2 }}
             >
-              {isLogin 
-                ? "Don't have an account? Sign up" 
-                : "Already have an account? Sign in"
-              }
+              {loading ? (
+                <CircularProgress size={24} color="inherit" />
+              ) : (
+                isLogin ? 'Sign In' : 'Sign Up'
+              )}
             </Button>
 
-            {isLogin && (
-              <Button
-                variant="text"
-                size="small"
-                onClick={handleForgotPassword}
-              >
-                Forgot Password?
+            <Divider sx={{ my: 2 }}>
+              <Typography variant="body2" color="text.secondary">
+                OR
+              </Typography>
+            </Divider>
+
+            <Button
+              fullWidth
+              variant="outlined"
+              size="large"
+              onClick={handleGoogleSignIn}
+              disabled={loading}
+              sx={{ mb: 2 }}
+            >
+              Continue with Google
+            </Button>
+
+            <Box textAlign="center">
+              <Button variant="text" onClick={() => setIsLogin(!isLogin)} sx={{ mb: 1 }}>
+                {isLogin
+                  ? "Don't have an account? Sign up"
+                  : 'Already have an account? Sign in'}
               </Button>
-            )}
-          </Box>
-        </CardContent>
-      </Card>
-    </Box>
-  );
+
+              {isLogin && (
+                <Button variant="text" size="small" onClick={handleForgotPassword}>
+                  Forgot Password?
+                </Button>
+              )}
+            </Box>
+          </CardContent>
+        </Card>
+      </Box>
+    );
 }
